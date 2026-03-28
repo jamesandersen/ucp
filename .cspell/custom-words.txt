@@ -104,6 +104,7 @@ vulnz
 worktree
 yaml
 zapatillas
+whatsapp
 yml
 jwks
 keyid

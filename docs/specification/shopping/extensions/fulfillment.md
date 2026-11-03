@@ -392,12 +392,15 @@ authorized payment. The general rules are defined in
 
 On Complete Checkout, each entry in `fulfillment.methods[]`:
 
-* **MUST** carry the `id` of an existing method on the Checkout.
+* **SHOULD** carry the `id` of the method it refines, and **MAY** omit it
+    only when the Checkout has exactly one `shipping` method. When present,
+    `id` **MUST** match an existing method on the Checkout.
 * **MAY** carry `type`, which **MUST** match the existing method's `type`
     and **MUST** be present when `destinations[]` is present.
 * **MAY** carry `destinations[]` only for a `shipping` method. It contains
-    at most one Shipping Destination, whose `id` **MUST** equal the method's
-    current `selected_destination_id`.
+    at most one Shipping Destination, which refines the method's currently
+    selected destination. Its `id` **MAY** be omitted; when present, it
+    **MUST** equal the method's current `selected_destination_id`.
 
 `line_item_ids`, `selected_destination_id`, and `groups` are not accepted on
 Complete Checkout. Methods and destinations that the request omits remain
@@ -405,15 +408,17 @@ unchanged.
 
 The refined Shipping Destination is merged into the selected destination. It:
 
-* **MAY** add Postal Address fields that are absent from the selected
-    destination, for example `street_address`, `extended_address`,
-    `first_name`, `last_name`, and `phone_number`.
+* **MAY** add or replace `street_address`, `extended_address`,
+    `first_name`, `last_name`, and `phone_number`. Credential providers
+    typically withhold these details until authorization, and their values
+    take precedence over earlier ones.
 * **MAY** replace a truncated `postal_code` with its full form when the
     existing value is a prefix of it, for example `62701` to `62701-1234`, or
     `SW1A` to `SW1A 1AA`.
-* **MUST NOT** change any other field already present on the selected
-    destination, such as `address_country`, `address_region`, or
-    `address_locality`.
+* **MUST NOT** change `address_country`, `address_region`,
+    `address_locality`, or `postal_code` (other than completing a truncated
+    value) when they are already present on the selected destination. The
+    totals the Buyer reviewed were calculated from these details.
 
 A Business that cannot match the method or destination, or that finds a
 refinement inconsistent with the selected destination, **MUST** reject it
@@ -431,7 +436,6 @@ served.
   "type": "shipping",
   "destinations": [
     {
-      "id": "dest_1",
       "first_name": "Jane",
       "last_name": "Doe",
       "street_address": "123 Main St",

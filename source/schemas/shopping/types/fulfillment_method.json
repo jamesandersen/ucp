@@ -16,7 +16,7 @@
       "ucp_request": {
         "create": "omit",
         "update": "optional",
-        "complete": "required"
+        "complete": "optional"
       }
     },
     "type": {

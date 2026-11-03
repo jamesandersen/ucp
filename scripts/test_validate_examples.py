@@ -1136,15 +1136,15 @@ def test_checkout_complete_refinement() -> None:
   complete = method_schema("complete")
   _check(
     "fulfillment_complete_method_projection",
-    complete.get("required") == ["id"]
+    not complete.get("required")
     and set(complete.get("properties", {})) == {"id", "type"},
     f"required={complete.get('required')},"
     f" properties={list(complete.get('properties', {}))}",
   )
   shipping = branch_destinations(complete, "shipping")
   _check(
-    "fulfillment_complete_shipping_destination_id_required",
-    shipping is not None and destination_required(shipping) == ["id"],
+    "fulfillment_complete_shipping_destination_id_optional",
+    shipping is not None and destination_required(shipping) == [],
   )
   _check(
     "fulfillment_complete_pickup_destinations_omitted",
@@ -1188,12 +1188,12 @@ def test_checkout_complete_refinement() -> None:
   for name, refinement, expected in (
     ("buyer", {"buyer": {"email": "buyer@example.com"}}, True),
     ("destination", methods(method), True),
-    ("method_without_id", methods(without(method, "id")), False),
+    ("method_without_id", methods(without(method, "id")), True),
     ("destinations_without_type", methods(without(method, "type")), False),
     (
       "destination_without_id",
       methods({**method, "destinations": [without(destination, "id")]}),
-      False,
+      True,
     ),
   ):
     valid, errors = v.validate_payload_with_schema(

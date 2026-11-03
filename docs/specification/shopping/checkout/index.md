@@ -1156,8 +1156,10 @@ So that the Platform can deliver this information without an additional
 Update Checkout round trip, Complete Checkout accepts `buyer` and, when the
 [Fulfillment Extension](../extensions/fulfillment.md#completion-time-refinement)
 is negotiated, a restricted `fulfillment` shape. These fields **refine** the
-Checkout the Buyer reviewed: they add detail to information already present and
-never change it.
+Checkout the Buyer reviewed. They can supply or update the Buyer's contact
+details and complete the selected shipping address. They never change the
+Buyer's selections or the address details that the totals were calculated
+from.
 
 Refinement is merged into the current Checkout. Unlike Update Checkout, it does
 not replace the resource: buyer fields, fulfillment methods, and destinations
@@ -1165,9 +1167,10 @@ that the request omits remain unchanged.
 
 The Platform:
 
-* **MAY** supply `buyer` fields that are absent from the current Checkout.
-* **MUST NOT** supply a `buyer` field whose value differs from the value
-    already present on the Checkout.
+* **MAY** supply any `buyer` field, including one that replaces a value
+    already present on the Checkout. For example, the credential provider
+    might return a different email address or phone number from the one the
+    Platform supplied earlier.
 * **MUST NOT** use Complete Checkout to change line items or to select a
     different fulfillment method, destination, or option. Those changes
     require Update Checkout.
@@ -1178,11 +1181,13 @@ The Business:
 
 * **MUST** apply refinements before evaluating completion, as part of the
     same Complete Checkout operation.
-* **MUST** verify that each refinement is consistent with the value already
-    present. The Business **MAY** normalize values before comparing them,
-    for example case or region abbreviations.
-* **MUST NOT** place the order or process payment when a refinement is
-    inconsistent with the current Checkout or references a method or
+* **MUST** verify that a fulfillment refinement preserves the address
+    details already present on the selected destination, as defined in
+    [Fulfillment — Completion-Time Refinement](../extensions/fulfillment.md#completion-time-refinement).
+    The Business **MAY** normalize values before comparing them, for example
+    case or region abbreviations.
+* **MUST NOT** place the order or process payment when a fulfillment
+    refinement changes those address details or references a method or
     destination it cannot match. In that case, the Business **MUST** leave the
     Checkout unchanged and **MUST** return it with an error Message with
     `severity: "recoverable"` whose `path` selects the offending field.
